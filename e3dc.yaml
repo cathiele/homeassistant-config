@@ -1,0 +1,67 @@
+
+# Modbus Connection
+modbus:
+  name: hub1
+  type: tcp
+  host: <e3dc-hostname>
+  port: 502
+
+# Modbus Registers of E3DC S10E
+sensor:
+  - platform: modbus
+    registers:
+      - name: E3DC solar power
+        hub: hub1
+        unit_of_measurement: W
+        register: 40067
+      - name: E3DC battery power
+        hub: hub1
+        unit_of_measurement: W
+        register: 40069
+      - name: E3DC battery soc
+        hub: hub1
+        unit_of_measurement: '%'
+        register: 40082
+        data_type: uint
+      - name: E3DC power consumption
+        hub: hub1
+        unit_of_measurement: W
+        register: 40071
+      - name: E3DC grid power
+        hub: hub1
+        unit_of_measurement: W
+        register: 40073
+      - name: E3DC emergency power state
+        hub: hub1
+        data_type: uint
+        register: 40083
+      - name: E3DC EMS state
+        hub: hub1
+        data_type: uint
+        register: 40084
+
+# emergency Power State Mapping
+binary_sensor:
+  - platform: template
+    sensors:
+      e3dc_emergency_power_available:
+        friendly_name: "E3DC Emergency Power available"
+        value_template: "{{ states('sensor.e3dc_ems_state')|int|bitwise_and(4) > 0 }}"
+      e3dc_battery_loading_blocked:
+        friendly_name: "E3DC Battery loading blocked"
+        value_template: "{{ states('sensor.e3dc_ems_state')|int|bitwise_and(1) > 0 }}"
+      e3dc_battery_unloading_blocked:
+        friendly_name: "E3DC Battery unloading blocked"
+        value_template: "{{ states('sensor.e3dc_ems_state')|int|bitwise_and(2) > 0 }}"
+      e3dc_weather_based_loading:
+        friendly_name: "E3DC weather based loading limiter"
+        value_template: "{{ states('sensor.e3dc_ems_state')|int|bitwise_and(8) > 0 }}"
+      e3dc_power_limiter:
+        friendly_name: "E3DC power limiter"
+        value_template: "{{ states('sensor.e3dc_ems_state')|int|bitwise_and(16) > 0 }}"
+      e3dc_smartcharge_loading_blocked:
+        friendly_name: "E3DC SmartCharge loading blocked"
+        value_template: "{{ states('sensor.e3dc_ems_state')|int|bitwise_and(32) > 0 }}"
+      e3dc_smartcharge_unloading_blocked:
+        friendly_name: "E3DC SmartCharge unloading blocked"
+        value_template: "{{ states('sensor.e3dc_ems_state')|int|bitwise_and(64) > 0 }}"
